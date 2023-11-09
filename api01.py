@@ -25,7 +25,7 @@ def get_all():
     var_json = json.dumps(items, indent=2)
     
     # Imprime o json.
-    
+    print(var_json)
 
 def get_one(id):
     var_json = json.dumps(items[id], indent=2)
