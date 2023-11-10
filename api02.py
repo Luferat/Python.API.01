@@ -23,11 +23,9 @@ items = [
 
 
 def get_all():  # Função que lê e lista todos os itens da coleção.
-    # Converte a lista 'items' para json e armazena em 'var_json'
-    var_json = json.dumps(items, indent=2)
 
-    # Imprime o json.
-    print(var_json)
+    # Converte a lista 'items' para json e retorna para o chamador.
+    return json.dumps(items, indent=2)
 
 
 def get_one(id):  # Função que lê um item específico, identificado pelo índice.
@@ -35,12 +33,12 @@ def get_one(id):  # Função que lê um item específico, identificado pelo índ
     # Converte o dicionario 'items[id]' para json e armazena em 'var_json'
     var_json = json.dumps(items[id], indent=2)
 
-    # Imprime o json.
-    print(var_json)
+    # Retorna o json para o chamador.
+    return var_json
 
 
-# Chama (call) a função get_all().
-get_all()
+# Chama (call) a função get_all() e imprime o seu retorno.
+print(get_all())
 
-# Chama a função get_one(), passando o índice como parâmetro.
-get_one(1)
+# Chama a função get_one(), passando o índice como parâmetro e imprime o seu retorno.
+print(get_one(1))
