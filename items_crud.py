@@ -4,15 +4,8 @@ import json
 # Importa a biblioteca 'sqlite3' para trabalhar com SQLite.
 import sqlite3
 
-# Importa a biblioteca 'os' para acessar o sistema operacional.
-import os
 
-
-# Especifica a base de dados SQLite3.
-database = "./dbitems.db"
-
-
-def get_all_items():  # Função que lê e lista todos os itens da coleção.
+def read_all_items(database):  # Função que retorna e lista todos os 'items'.
 
     # Conecta ao banco de dados.
     conn = sqlite3.connect(database)
@@ -46,11 +39,10 @@ def get_all_items():  # Função que lê e lista todos os itens da coleção.
         return json.dumps({"message": "Nenhum registro encontrado"}, indent=2)
 
 # Exemplo de uso para obter todos os 'itens' da tabela 'item'.
-# os.system('cls')
 # print(get_all_items())
 
 
-def get_one_item(item_id):
+def read_one_item(database, item_id):  # Função que retorna um 'item' identificado pelo 'ID'.
 
     # Conecta ao banco de dados, define a saída como um dicionário e cria um cursor.
     conn = sqlite3.connect(database)
@@ -74,16 +66,14 @@ def get_one_item(item_id):
 
 # Exemplo de uso para obter um registro pelo ID.
 # item_id = 1  # Substitua pelo ID desejado.
-# os.system('cls')
 # print(get_one_item(item_id))
 
-
-def create_item(item_json):
+def create_item(database, item_json):
     try:
         # Converte o JSON para um dicionário.
         new_item = json.loads(item_json)
 
-        # Conecta ao banco de dados.
+        # Conecta ao banco de dados e cria um cursor.
         conn = sqlite3.connect(database)
         cursor = conn.cursor()
 
@@ -111,6 +101,63 @@ def create_item(item_json):
 #     "location": "Nun pote cheio",
 #     "owner": "1"
 # }'''
-# os.system('cls')
 # print(create_item(new_item_json))
 
+
+def delete_item(database, item_id):
+    try:
+        # Conecta ao banco de dados e cria um cursor.
+        conn = sqlite3.connect(database)
+        cursor = conn.cursor()
+
+        # Atualiza o campo 'item_status' para 'off' para o registro específicado pelo ID.
+        cursor.execute("UPDATE item SET item_status = 'off' WHERE item_id = ?", (item_id,))
+
+        # Commit para salvar as alterações.
+        conn.commit()
+
+        # Fechar a conexão com o banco de dados.
+        conn.close()
+
+        return json.dumps({"message": "Registro apagado com sucesso"}, indent=2)
+    except sqlite3.Error as e:
+        return json.dumps({"error": f"Erro ao apagar registro: {str(e)}"}, indent=2)
+
+# Exemplo de uso para deletar um registro pelo ID.
+# item_id_to_delete = 1  # Substitua pelo ID desejado.
+# print(delete_item(item_id_to_delete))
+
+
+def update_item(database, item_id, item_json):
+    try:
+        # Converte o JSON para um dicionário.
+        updated_item = json.loads(item_json)
+
+        # Conecta ao banco de dados.
+        conn = sqlite3.connect(database)
+        cursor = conn.cursor()
+
+        # Loop para atualizar os campos específicos do registro na tabela 'item'.
+        # Observe que o prefixo 'item_' é adicionado ao(s) nome(s) do(s) campo(s).
+        set_clause = ', '.join([f"item_{key} = ?" for key in updated_item.keys()])
+
+        # Monta SQL com base nos campos a serem atualizados.
+        sql = f"UPDATE item SET {set_clause} WHERE item_id = ? AND item_status = 'on'"
+        cursor.execute(sql, (*updated_item.values(), item_id))
+
+        # Commit para salvar as alterações.
+        conn.commit()
+
+        # Fechar a conexão com o banco de dados.
+        conn.close()
+
+        return json.dumps({"message": "Registro atualizado com sucesso"}, indent=2)
+    except json.JSONDecodeError as e:
+        return json.dumps({"error": f"Erro ao decodificar JSON: {str(e)}"}, indent=2)
+    except sqlite3.Error as e:
+        return json.dumps({"error": f"Erro ao atualizar registro no banco de dados: {str(e)}"}, indent=2)
+
+# Exemplo de uso para atualizar um registro pelo ID com dados de um JSON.
+# item_id_to_update = 1  # Substitua pelo ID desejado.
+# updated_item_json = '{"name": "Novo Nome", "description": "Nova Descrição"}'
+# print(update_item(item_id_to_update, updated_item_json))
