@@ -20,8 +20,7 @@ def get_all():  # Função que lê e lista todos os itens da coleção.
     cursor = conn.cursor()
 
     # Consultar dados
-    cursor.execute(
-        "SELECT * FROM item WHERE item_status = 'on' ORDER BY item_date DESC")
+    cursor.execute(     "SELECT * FROM item WHERE item_status = 'on' ORDER BY item_date DESC")
     dados = cursor.fetchall()
 
     # Fechar a conexão com o banco de dados
