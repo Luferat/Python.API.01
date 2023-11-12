@@ -1,0 +1,5 @@
+{
+    "autopep8.args": [
+        "--ignore=E501"
+    ]
+}
