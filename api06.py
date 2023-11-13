@@ -4,18 +4,15 @@ from createdb import check_db
 # Importa funções CRUD para item.
 from items_crud import read_all_items, read_one_item, create_item, delete_item, update_item
 
-
 # Importa a biblioteca 'os' para acessar o sistema operacional.
 import os
 
-
 # Especifica a base de dados SQLite3.
-database = "./dbitems2.db"
-
+database = "./dbitems.db"
 
 # Exemplo de uso para obter todos os 'itens' da tabela 'item'.
-os.system('cls')
 check_db(database)
+os.system('cls')
 print(read_all_items(database))
 
 # Exemplo de uso para obter um item pelo ID.

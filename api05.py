@@ -46,8 +46,8 @@ def get_all_items():  # Função que lê e lista todos os itens da coleção.
         return json.dumps({"message": "Nenhum registro encontrado"}, indent=2)
 
 # Exemplo de uso para obter todos os 'itens' da tabela 'item'.
-# os.system('cls')
-# print(get_all_items())
+os.system('cls')
+print(get_all_items())
 
 
 def get_one_item(item_id):

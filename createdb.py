@@ -3,15 +3,31 @@ import sqlite3
 import os
 
 
-def check_db(database):
-    if not os.path.exists(database):
-        create_db(database)
-        print(f"Banco de dados {database} criado.")
-    else:
-        print(f"Banco de dados {database} já existe.")
+def check_db(database, create=True, force=False, verbose=False):  # Verifica a existência do banco de dados.
+
+    # Se 'force = True', força a criação do banco.
+    # Caso ele já exista, recria.
+    if force:
+        create_db(database, verbose)
+        if verbose:  # Por padrão (verbose=False), NÃO mostra mensagens no console.
+            print(f"Banco de dados {database} (re)criado.")
+        return  # Encerra.
+
+    if not os.path.exists(database):  # Se o banco de dados NÃO existe no sistema de arquivos...
+        if verbose:
+            print(f"Banco de dados {database} não existe.")
+        if create:  # Por padrão (create=True)...
+            create_db(database, verbose)  # Cria o banco de dados.
+            if verbose:
+                print(f"Banco de dados {database} criado.")
+    else:  # Se o banco existe, nada será feito.
+        if verbose:
+            print(f"Banco de dados {database} já existe.")
+
+    return  # Encerra.
 
 
-def create_db(database):  # (Re)Cria a base de dados do aplicativo.
+def create_db(database, verbose):  # (Re)Cria a base de dados do aplicativo.
 
     # Conecta ao banco de dados SQLite3 (se não existir, será criado).
     conn = sqlite3.connect(database)
@@ -70,9 +86,14 @@ def create_db(database):  # (Re)Cria a base de dados do aplicativo.
     # Fechar a conexão com o banco de dados.
     conn.close()
 
-    print("Tabelas criadas e dados inseridos com sucesso.")
+    if verbose:
+        print("Tabelas criadas e dados inseridos com sucesso.")
 
 
-# database = "./dbitem.db"
-# os.system('cls')
-# check_db(database)
+# Exemplos de uso:
+# database = "./dbitem.db" # Banco de dados a ser testado/criado.
+#
+# check_db(database) # Se o banco de dados não existir, será criado.
+# check_db(database, create=False) # Apenas informa se o banco de dados existe ou não.
+# check_db(database, force=True) # (Re)cria o banco de dados, mesmo que ele já exista.
+# check_db(database, verbose=True) # Mostra mensagens no console. Pode usar com qualquer modo acima.
