@@ -98,8 +98,10 @@ def create_item(item_json):
         conn.close()
 
         return json.dumps({"message": "Registro criado com sucesso"}, indent=2)
+    
     except json.JSONDecodeError as e:
         return json.dumps({"error": f"Erro ao decodificar JSON: {str(e)}"}, indent=2)
+    
     except sqlite3.Error as e:
         return json.dumps({"error": f"Erro ao inserir registro no banco de dados: {str(e)}"}, indent=2)
 

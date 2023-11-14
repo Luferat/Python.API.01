@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Importa a biblioteca 'json'.
 import json
 
@@ -5,63 +7,100 @@ import json
 import sqlite3
 
 
+def prefix_remove(prefix, data):  # Função que remove os prefixos dos nomes dos campos.
+    new_data = {}
+    for key, value in data.items():
+        if key.startswith(prefix):
+            new_key = key[len(prefix):]
+            new_data[new_key] = value
+        else:
+            new_data[key] = value
+    return new_data
+
+
 def read_all_items(database):  # Função que retorna e lista todos os 'items'.
 
-    # Conecta ao banco de dados.
-    conn = sqlite3.connect(database)
+    try:
 
-    # Define a fábrica de linhas como dicionário.
-    conn.row_factory = sqlite3.Row
+        # Conecta ao banco de dados.
+        conn = sqlite3.connect(database)
 
-    # Cria um cursor de dados.
-    cursor = conn.cursor()
+        # Formata os dados retornados na factory como SQLite.Row.
+        conn.row_factory = sqlite3.Row
 
-    # Consultar dados
-    cursor.execute("SELECT * FROM item WHERE item_status = 'on' ORDER BY item_date DESC")
-    dados = cursor.fetchall()
+        # Cria um cursor de dados.
+        cursor = conn.cursor()
 
-    # Fechar a conexão com o banco de dados
-    conn.close()
+        # Executa o SQL.
+        cursor.execute("SELECT * FROM item WHERE item_status = 'on' ORDER BY item_date DESC")
 
-    # Criar uma lista para armazenar os registros.
-    registros = []
+        # Retorna todos os resultados da consulta para 'items_rows'.
+        items_rows = cursor.fetchall()
 
-    # Converter cada objeto Row em um dicionário e adicionar à lista 'registros'.
-    for registro in dados:
-        registros.append(dict(registro))
+        # Fecha a conexão com o banco de dados
+        conn.close()
 
-    # Verificar se há registros antes de retornar.
-    if registros:
-        # Se houver registros, serializar os dados em formato JSON e retornar.
-        return json.dumps(registros, indent=2)
-    else:
-        # Se não houver registros, retornar um JSON indicando a ausência de registros.
-        return json.dumps({"message": "Nenhum registro encontrado"}, indent=2)
+        # Cria uma lista para armazenar os registros.
+        items = []
+
+        # Converte cada SQLite.Row em um dicionário e adiciona à lista 'registros'.
+        for item in items_rows:
+            items.append(dict(item))
+
+        # Verifica se há registros antes de retornar.
+        if items:
+
+            # Remove prefixos dos campos.
+            new_items = [prefix_remove('item_', item) for item in items]
+
+            # Se houver registros, retorna tudo.
+            return new_items
+        else:
+            # Se não houver registros, retorna erro.
+            return {"error": "Nenhum item encontrado"}
+
+    except sqlite3.Error as e:  # Erro ao processar banco de dados.
+        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}
 
 # Exemplo de uso para obter todos os 'itens' da tabela 'item'.
-# print(read_all_items())
+# database = "./dbitem.db"
+# print(read_all_items(database))
 
 
 def read_one_item(database, item_id):  # Função que retorna um 'item' identificado pelo 'ID'.
 
-    # Conecta ao banco de dados, define a saída como um dicionário e cria um cursor.
-    conn = sqlite3.connect(database)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
+    try:
+        # Conecta ao banco de dados.
+        conn = sqlite3.connect(database)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
 
-    # Consulta um registro específico pelo ID.
-    cursor.execute("SELECT * FROM item WHERE item_id = ? AND item_status = 'on'", (item_id,))
-    dado = cursor.fetchone()
+        # Executa o SQL.
+        cursor.execute("SELECT * FROM item WHERE item_id = ? AND item_status = 'on'", (item_id,))
 
-    # Fechar a conexão com o banco de dados.
-    conn.close()
+        # Retorna o resultado da consulta para 'item_row'.
+        item_row = cursor.fetchone()
 
-    # Se o registro com o ID existir, converte para um dicionário e retorna como JSON.
-    if dado:
-        return json.dumps(dict(dado), indent=2)
-    else:
-        # Se não encontrar o registro, retorna uma mensagem indicando que o ID não foi encontrado.
-        return json.dumps({"error": "ID não encontrado"}, indent=2)
+        # Fecha a conexão com o banco de dados.
+        conn.close()
+
+        # Se o registro existe...
+        if item_row:
+
+            # Converte SQLite.Row para dicionário e armazena em 'item'.
+            item = dict(item_row)
+
+            # Remove prefixos dos campos.
+            new_item = prefix_remove('item_', item)
+
+            # Retorna item.
+            return new_item
+        else:
+            # Se não encontrar o registro, retorna erro.
+            return {"error": "Item não encontrado"}
+
+    except sqlite3.Error as e:  # Erro ao processar banco de dados.
+        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}
 
 
 # Exemplo de uso para obter um registro pelo ID.
@@ -69,29 +108,32 @@ def read_one_item(database, item_id):  # Função que retorna um 'item' identifi
 # print(read_one_item(item_id))
 
 def create_item(database, item_json):
-    try:
-        # Converte o JSON para um dicionário.
-        new_item = json.loads(item_json)
 
-        # Conecta ao banco de dados e cria um cursor.
+    try:
+        # Conecta ao banco de dados.
         conn = sqlite3.connect(database)
         cursor = conn.cursor()
 
-        # Insere um novo registro na tabela 'item'.
+        # Query que insere um novo registro na tabela 'item'.
         sql = "INSERT INTO item (item_name, item_description, item_location, item_owner) VALUES (?, ?, ?, ?)"
-        cursor.execute(sql, (new_item['name'], new_item['description'], new_item['location'], new_item['owner']))
 
-        # Commit para salvar as alterações.
+        # Executa a query, fazendo as devidas substituições.
+        cursor.execute(sql, (item_json['name'], item_json['description'], item_json['location'], item_json['owner']))
+
+        # Salvar as alterações no banco de dados.
         conn.commit()
 
-        # Fechar a conexão com o banco de dados.
+        # Fecha a conexão com o banco de dados.
         conn.close()
 
-        return json.dumps({"message": "Registro criado com sucesso"}, indent=2)
-    except json.JSONDecodeError as e:
-        return json.dumps({"error": f"Erro ao decodificar JSON: {str(e)}"}, indent=2)
-    except sqlite3.Error as e:
-        return json.dumps({"error": f"Erro ao inserir registro no banco de dados: {str(e)}"}, indent=2)
+        # Retorna com sucesso.
+        return {"success": "Registro criado com sucesso"}
+
+    except json.JSONDecodeError as e:  # Erro ao obter dados do JSON.
+        return {"error": f"Erro ao decodificar JSON: {str(e)}"}
+
+    except sqlite3.Error as e:  # Erro ao processar banco de dados.
+        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}
 
 
 # Exemplo de uso para criar um novo item a partir de um JSON.
@@ -105,6 +147,7 @@ def create_item(database, item_json):
 
 
 def delete_item(database, item_id):
+
     try:
         # Conecta ao banco de dados e cria um cursor.
         conn = sqlite3.connect(database)
@@ -119,9 +162,11 @@ def delete_item(database, item_id):
         # Fechar a conexão com o banco de dados.
         conn.close()
 
-        return json.dumps({"message": "Registro apagado com sucesso"}, indent=2)
-    except sqlite3.Error as e:
-        return json.dumps({"error": f"Erro ao apagar registro: {str(e)}"}, indent=2)
+        return {"success": "Registro apagado com sucesso"}
+
+    except sqlite3.Error as e:  # Erro ao processar banco de dados.
+        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}
+
 
 # Exemplo de uso para deletar um registro pelo ID.
 # item_id_to_delete = 1  # Substitua pelo ID desejado.
@@ -129,21 +174,19 @@ def delete_item(database, item_id):
 
 
 def update_item(database, item_id, item_json):
-    try:
-        # Converte o JSON para um dicionário.
-        updated_item = json.loads(item_json)
 
+    try:
         # Conecta ao banco de dados.
         conn = sqlite3.connect(database)
         cursor = conn.cursor()
 
         # Loop para atualizar os campos específicos do registro na tabela 'item'.
         # Observe que o prefixo 'item_' é adicionado ao(s) nome(s) do(s) campo(s).
-        set_clause = ', '.join([f"item_{key} = ?" for key in updated_item.keys()])
+        set_clause = ', '.join([f"item_{key} = ?" for key in item_json.keys()])
 
         # Monta SQL com base nos campos a serem atualizados.
         sql = f"UPDATE item SET {set_clause} WHERE item_id = ? AND item_status = 'on'"
-        cursor.execute(sql, (*updated_item.values(), item_id))
+        cursor.execute(sql, (*item_json.values(), item_id))
 
         # Commit para salvar as alterações.
         conn.commit()
@@ -151,11 +194,14 @@ def update_item(database, item_id, item_json):
         # Fechar a conexão com o banco de dados.
         conn.close()
 
-        return json.dumps({"message": "Registro atualizado com sucesso"}, indent=2)
+        return {"success": "Registro atualizado com sucesso"}
+
     except json.JSONDecodeError as e:
-        return json.dumps({"error": f"Erro ao decodificar JSON: {str(e)}"}, indent=2)
-    except sqlite3.Error as e:
-        return json.dumps({"error": f"Erro ao atualizar registro no banco de dados: {str(e)}"}, indent=2)
+        return {"error": f"Erro ao decodificar JSON: {str(e)}"}
+
+    except sqlite3.Error as e:  # Erro ao processar banco de dados.
+        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}
+
 
 # Exemplo de uso para atualizar um registro pelo ID com dados de um JSON.
 # item_id_to_update = 1  # Substitua pelo ID desejado.
