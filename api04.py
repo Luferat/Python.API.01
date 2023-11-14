@@ -101,5 +101,4 @@ my_json = '''
     "location": "No jardim"
 }
 '''
-
 new(my_json)
