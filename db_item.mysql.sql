@@ -1,5 +1,5 @@
 -- Apaga o banco de dados caso ele já exista.
-DROP DATABASE IF EXISTS db_items;
+-- DROP DATABASE IF EXISTS db_items;
 
 -- Cria o banco de dados com atenção à tabela de caracteres.
 CREATE DATABASE db_items 
