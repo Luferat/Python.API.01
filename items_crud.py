@@ -39,7 +39,7 @@ def read_all_items(database):  # Função que retorna e lista todos os 'items'.
         return json.dumps({"message": "Nenhum registro encontrado"}, indent=2)
 
 # Exemplo de uso para obter todos os 'itens' da tabela 'item'.
-# print(get_all_items())
+# print(read_all_items())
 
 
 def read_one_item(database, item_id):  # Função que retorna um 'item' identificado pelo 'ID'.
@@ -66,7 +66,7 @@ def read_one_item(database, item_id):  # Função que retorna um 'item' identifi
 
 # Exemplo de uso para obter um registro pelo ID.
 # item_id = 1  # Substitua pelo ID desejado.
-# print(get_one_item(item_id))
+# print(read_one_item(item_id))
 
 def create_item(database, item_json):
     try:
