@@ -22,8 +22,8 @@ def get_all_items():
     for res_temp in data:
         res.append(dict(res_temp))
 
-    os.system('cls')
-    print(res)
+    
+    return json.dumps(res, indent = 2)
 
-
-get_all_items()
+os.system('cls')
+print(get_all_items())
