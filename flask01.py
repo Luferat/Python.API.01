@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Importa bibliotecas.
-from flask import Flask, jsonify, request, abort, make_response, json, Response
+from flask import Flask, jsonify, request, abort, make_response, json, Response, render_template
 
 # Importa as funções para detectar a criar o database.
 from createdb import check_db
@@ -17,6 +17,14 @@ json.provider.DefaultJSONProvider.ensure_ascii = False
 
 # Especifica a base de dados SQLite3.
 database = "./dbitem.db"
+
+# Página inicial.
+# Request method → GET
+# Request endpoint → /
+# Response → HTML
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route("/install", methods=["GET"])
 def install(database):
