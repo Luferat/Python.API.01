@@ -1,20 +1,65 @@
-# Importa bilbioteca de manipulação de JSON.
+# -*- coding: utf-8 -*-
+
+# Importa as bilbiotecas de dependências.
 import json
-
-# Importa bilbioteca de gestão do SQLite3.
 import sqlite3
-
-# Importa biblioteca de acesso ao sistema operacional.
 import os
 
 # Define o banco de dados.
-database = './temp_db.db'
+database = './db/temp_db.db'
+
+
+# Função get_all_items()
+# Obtém todos os 'item' válidos do banco de dados.
+# Retorna como uma 'list' de 'dict'.
 
 
 # Função que obtém e retorna (JSON) todos os 'item' do banco de dados.
 def get_all_items():
 
-    # Faz a conexão com o banco de dados.
+    # Cria uma conexão com o banco de dados SQLite.
+    conn = sqlite3.connect(database)
+
+    # Define que a troca de dados entre Python e SQLite acontece na for a de Row.
+    conn.row_factory = sqlite3.Row
+
+    # Um cursor que aponta para a(s) linha(s) do SQLite.Row que está(ão) sendo acessadas.
+    cursor = conn.cursor()
+
+    # Query para consultar os registrosn na tabela 'item'.
+    sql = "SELECT * FROM item WHERE item_status != 'off'"
+
+    # Executa o SQL acima no banco de dados.
+    cursor.execute(sql)
+
+    # "Puxa" os dados do cursor para o Python.
+    data = cursor.fetchall()
+
+    # Desconecta do banco de dados.
+    # Guarda recursos, aumenta a segurança, evita corrupção de dados.
+    conn.close()
+
+    # Uma 'list' para armazenar as SQLite.Row no forma de 'dict'.
+    res = []
+
+    # Loop que obtém cada SLite.Row da memória (data).
+    for res_temp in data:
+
+        # Converte a SQLite.Row em 'dict' e adiciona no final da 'list' 'res'.
+        res.append(dict(res_temp))
+
+    # Devolve os dados processados para quem solicitou.
+    return res
+
+
+# Função get_one_item(id)
+# Obtém um 'item' único e válido do banco de dados, identificado pelo 'id'.
+# Retorna como um 'dict'.
+
+
+def get_one_item(id):
+
+    # Incializa o banco de dados.
     conn = sqlite3.connect(database)
 
     # Abre toda a base de dados na RAM do computador na forma de 'list'.
@@ -26,40 +71,30 @@ def get_all_items():
     # Mantém um 'ponteiro' que indica onde você está nos resultados da consulta, permitindo que você itere sobre eles ou recupere dados específicos.
     cursor = conn.cursor()
 
-    # Comando SQL a ser executado no SQLite, seguindo o padrão desta plataforma.
-    # O Python só executa um comando SQL de cada vez, não suportando lotes.
-    sql = 'SELECT * FROM item'
+    # Query de consulta.
+    sql = "SELECT * FROM item WHERE item_status != 'off' AND item_id = ?"
 
-    # Executa o comando SQL no SQLite.
-    # O cursor recebe os resultados da consulta e armazena na RAM.
-    cursor.execute(sql)
-
-    # Obtém os dados da 'row_factory' na forma de 'list' e armazena em uma variável (data).
-    # Cada item de 'data' é uma representação binária (object) de cada linha (Row) retornada do banco de dados.
-    data = cursor.fetchall()
-
-    # Fecha a conexçao com o banco de dados, pois não precisamos mais dele.
-    # Evita desperdíssio de recursos, a corrupção dos dados e libera a conexão para outros usos.
-    conn.close()
-
-    # Apenas um 'list' para armazenar todos os itens.
-    all_items = []
-
-    # Loop que itera 'data', armazenando cada linha (row) na variável 'item'.
-    for item in data:
-
-        # Adiciona cada item, na forma de 'dict' no final de 'all_items' (list).
-        all_items.append(dict(item))
-
-    # Retorna todos os 'item' na forma de JSON.
-    return json.dumps(all_items, indent=2)
-
-# Exemplo de uso de 'get_all_items()'.
-# Dica: melhore o 'sql' da função para obter resultados mais específicos.
+    # Executa o código passando o valor do ID.
+    cursor.execute(sql, (id,))
 
 
-# Limpa e view do console.
+# Limpa o console.
 os.system('cls')
 
-# Executa a função e exibe os resultados.
-print(get_all_items())
+# Exemplo para obter todos os 'item' válidos.
+# print(  # Exibe no console.
+#     json.dumps(  # No formato JSON.
+#         get_all_items(),  # Os items obtidos desta função.
+#         ensure_ascii=False,  # Usando a tabela UTF-8 (acentuação).
+#         indent=2  # Formatando o JSON.
+#     )
+# )
+
+# Exemplo para obter um 'item' pelo ID.
+print(
+    json.dumps(
+        get_one_item(1),
+        ensure_ascii=False,
+        indent=2
+    )
+)
