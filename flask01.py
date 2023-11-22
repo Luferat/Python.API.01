@@ -31,12 +31,14 @@ def prefix_remove(prefix, data):
     return new_data
 
 
-# Obtém todos os registros válidos de 'item'.
-# Request method → GET
-# Request endpoint → /items
-# Response → JSON → [{}]
 @app.route("/items", methods=["GET"])
 def get_all():
+
+    # Obtém todos os registros válidos de 'item'.
+    # Request method → GET
+    # Request endpoint → /items
+    # Response → JSON
+
     try:
 
         # Conecta ao banco de dados.
@@ -65,7 +67,7 @@ def get_all():
         for item in items_rows:
             items.append(dict(item))
 
-        # Verifica se há registros antes de retornar.
+        # Verifica se há registros antes de retornar...
         if items:
 
             # Remove prefixos dos campos.
@@ -75,7 +77,7 @@ def get_all():
             return new_items
         else:
             # Se não houver registros, retorna erro.
-            return {"error": "Nenhum item encontrado"}
+            return {"error": "Nenhum item encontrado"}, 404
 
     except sqlite3.Error as e:  # Erro ao processar banco de dados.
         return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}
@@ -84,12 +86,14 @@ def get_all():
         return {"error": f"Erro inesperado: {str(error)}"}
 
 
-# Obtém um registro único de 'item', identificado pelo 'id'.
-# Request method → GET
-# Request endpoint → /items/<id>
-# Response → JSON → {}
 @app.route("/items/<int:id>", methods=["GET"])
 def get_one(id):
+
+    # Obtém um registro único de 'item', identificado pelo 'id'.
+    # Request method → GET
+    # Request endpoint → /items/<id>
+    # Response → JSON → {}
+
     try:
         # Conecta ao banco de dados.
         conn = sqlite3.connect(database)
@@ -98,7 +102,7 @@ def get_one(id):
 
         # Executa o SQL.
         cursor.execute(
-            "SELECT * FROM item WHERE item_id = ? AND item_status = 'on'", (item_id,))
+            "SELECT * FROM item WHERE item_id = ? AND item_status = 'on'", (id,))
 
         # Retorna o resultado da consulta para 'item_row'.
         item_row = cursor.fetchone()
@@ -119,7 +123,7 @@ def get_one(id):
             return new_item
         else:
             # Se não encontrar o registro, retorna erro.
-            return {"error": "Item não encontrado"}
+            return {"error": "Item não encontrado"}, 404
 
     except sqlite3.Error as e:  # Erro ao processar banco de dados.
         return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}, 500
@@ -128,13 +132,15 @@ def get_one(id):
         return {"error": f"Erro inesperado: {str(error)}"}, 500
 
 
-# Cadastra um novo registro em 'item'.
-# Request method → POST
-# Request endpoint → /items
-# Request body → JSON (raw) → { String:name, String:description, String:location, int:owner }
-# Response → JSON → { "success": "Registro criado com sucesso", "id": id do novo registro }}
 @app.route('/items', methods=["POST"])
 def create():
+
+    # Cadastra um novo registro em 'item'.
+    # Request method → POST
+    # Request endpoint → /items
+    # Request body → JSON (raw) → { String:name, String:description, String:location, int:owner }
+    # Response → JSON → { "success": "Registro criado com sucesso", "id": id do novo registro }}
+
     try:
         # Recebe dados do body da requisição na forma de 'dict'.
         new_item = request.get_json()
@@ -179,14 +185,30 @@ def create():
     except Exception as error:  # Outros erros.
         return {"error": f"Erro inesperado: {str(error)}"}, 500
 
-# Edita um registro em 'item', identificado pelo 'id'.
-# Request method → PUT ou PATCH
-# Request endpoint → /items/<id>
-# Request body → JSON (raw) → { String:name, String:description, String:location, int:owner }
-#       OBS: usando "PATCH", não é necessário enviar todos os campos, apenas os que serão alterados.
-# Response → JSON → { "success": "Registro atualizado com sucesso", "id": id do registro }}
-@app.route('/items', methods=["POST"])
-def update():
+
+@app.route("/items/<int:id>", methods=["PUT", "PATCH"])
+def edit(id):
+
+    # Edita um registro em 'item', identificado pelo 'id'.
+    # Request method → PUT ou PATCH
+    # Request endpoint → /items/<id>
+    # Request body → JSON (raw) → { String:name, String:description, String:location, int:owner }
+    #       OBS: usando "PATCH", não é necessário enviar todos os campos, apenas os que serão alterados.
+    # Response → JSON → { "success": "Registro atualizado com sucesso", "id": id do registro }
+
+    pass
+
+
+@app.route("/items/<int:id>", methods=["DELETE"])
+def delete(id):
+
+    # Marca, como apagado, um registro único de 'item', identificado pelo 'id'.
+    # Request method → DELETE
+    # Request endpoint → /items/<id>
+    # Response → JSON → { "success": "Registro apagado com sucesso", "id": id do registro }
+
+    pass
+
 
 # Roda aplicativo Flask.
 if __name__ == "__main__":
