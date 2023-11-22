@@ -13,10 +13,14 @@ json.provider.DefaultJSONProvider.ensure_ascii = False
 # Especifica a base de dados SQLite3.
 database = "./db/temp_db.db"
 
-# Função que remove os prefixos dos nomes dos campos de um 'dict'. By StackOverflow.
-
 
 def prefix_remove(prefix, data):
+
+    # Função que remove os prefixos dos nomes dos campos de um 'dict'.
+    # Por exemplo, prefix_remove('item_', { 'item_id': 2, 'item_name': 'Coisa', 'item_status': 'on' })
+    # retorna { 'id': 2, 'name': 'Coisa', 'status': 'on' }
+    # Créditos: Comunidade StackOverflow.
+
     new_data = {}
     for key, value in data.items():
         if key.startswith(prefix):
@@ -76,7 +80,7 @@ def get_all():
     except sqlite3.Error as e:  # Erro ao processar banco de dados.
         return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}
 
-    except Exception as error:
+    except Exception as error:  # Outros erros.
         return {"error": f"Erro inesperado: {str(error)}"}
 
 
@@ -120,23 +124,42 @@ def get_one(id):
     except sqlite3.Error as e:  # Erro ao processar banco de dados.
         return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}, 500
 
-    except Exception as error:
+    except Exception as error:  # Outros erros.
         return {"error": f"Erro inesperado: {str(error)}"}, 500
 
 
+# Cadastra um novo registro em 'item'.
+# Request method → POST
+# Request endpoint → /items
+# Request body → JSON (raw) → { String:name, String:description, String:location, int:owner }
+# Response → JSON → { "success": "Registro criado com sucesso", "id": id do novo registro }}
 @app.route('/items', methods=["POST"])
 def create():
     try:
+        # Recebe dados do body da requisição na forma de 'dict'.
+        new_item = request.get_json()
+
         # Conecta ao banco de dados.
+        # Observe que 'row_factory' é desnecessário porque não receberemos dados do banco de dados.
         conn = sqlite3.connect(database)
         cursor = conn.cursor()
 
         # Query que insere um novo registro na tabela 'item'.
         sql = "INSERT INTO item (item_name, item_description, item_location, item_owner) VALUES (?, ?, ?, ?)"
 
-        # Executa a query, fazendo as devidas substituições.
-        cursor.execute(
-            sql, (item_json['name'], item_json['description'], item_json['location'], item_json['owner']))
+        # Dados a serem inseridos, obtidos do request.
+        sql_data = (
+            new_item['name'],
+            new_item['description'],
+            new_item['location'],
+            new_item['owner']
+        )
+
+        # Executa a query, fazendo as devidas substituições dos curingas (?) pelos dados (sql_data).
+        cursor.execute(sql, sql_data)
+
+        # Obter o ID da última inserção
+        inserted_id = cursor.lastrowid
 
         # Salvar as alterações no banco de dados.
         conn.commit()
@@ -144,8 +167,8 @@ def create():
         # Fecha a conexão com o banco de dados.
         conn.close()
 
-        # Retorna com sucesso.
-        return {"success": "Registro criado com sucesso"}
+        # Retorna com mensagem de sucesso e status HTTP "201 Created".
+        return {"success": "Registro criado com sucesso", "id": {inserted_id}}, 201
 
     except json.JSONDecodeError as e:  # Erro ao obter dados do JSON.
         return {"error": f"Erro ao decodificar JSON: {str(e)}"}, 500
@@ -153,9 +176,17 @@ def create():
     except sqlite3.Error as e:  # Erro ao processar banco de dados.
         return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}, 500
 
-    except Exception as error:
+    except Exception as error:  # Outros erros.
         return {"error": f"Erro inesperado: {str(error)}"}, 500
 
+# Edita um registro em 'item', identificado pelo 'id'.
+# Request method → PUT ou PATCH
+# Request endpoint → /items/<id>
+# Request body → JSON (raw) → { String:name, String:description, String:location, int:owner }
+#       OBS: usando "PATCH", não é necessário enviar todos os campos, apenas os que serão alterados.
+# Response → JSON → { "success": "Registro atualizado com sucesso", "id": id do registro }}
+@app.route('/items', methods=["POST"])
+def update():
 
 # Roda aplicativo Flask.
 if __name__ == "__main__":
