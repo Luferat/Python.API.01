@@ -7,7 +7,7 @@ from flask import Flask, jsonify, request, abort, make_response, json, Response,
 from createdb import check_db
 
 # Importa funções CRUD para item.
-from items_crud import read_all_items, read_one_item, create_item, delete_item, update_item
+from crud import read_all_items, read_one_item, create_item, delete_item, update_item
 
 # Cria aplicativo Flask.
 app = Flask(__name__)
