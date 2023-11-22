@@ -13,100 +13,148 @@ json.provider.DefaultJSONProvider.ensure_ascii = False
 # Especifica a base de dados SQLite3.
 database = "./db/temp_db.db"
 
+# Função que remove os prefixos dos nomes dos campos de um 'dict'. By StackOverflow.
+
+
+def prefix_remove(prefix, data):
+    new_data = {}
+    for key, value in data.items():
+        if key.startswith(prefix):
+            new_key = key[len(prefix):]
+            new_data[new_key] = value
+        else:
+            new_data[key] = value
+    return new_data
+
+
 # Obtém todos os registros válidos de 'item'.
 # Request method → GET
 # Request endpoint → /items
-# Response → JSON
-
-
+# Response → JSON → [{}]
 @app.route("/items", methods=["GET"])
 def get_all():
     try:
-        # Conectar ao banco de dados SQLite.
+
+        # Conecta ao banco de dados.
         conn = sqlite3.connect(database)
+
+        # Formata os dados retornados na factory como SQLite.Row.
         conn.row_factory = sqlite3.Row
+
+        # Cria um cursor de dados.
         cursor = conn.cursor()
 
-        # Consulta SQL para selecionar todos os itens ativos.
-        sql = "SELECT * FROM item WHERE item_status != 'off'"
-        cursor.execute(sql)
-        rows_data = cursor.fetchall()
+        # Executa o SQL.
+        cursor.execute(
+            "SELECT * FROM item WHERE item_status = 'on' ORDER BY item_date DESC")
+
+        # Retorna todos os resultados da consulta para 'items_rows'.
+        items_rows = cursor.fetchall()
+
+        # Fecha a conexão com o banco de dados
         conn.close()
 
-        # Converter os resultados em uma lista de dicionários.
-        list_data = []
-        for row_data in rows_data:
-            list_data.append(dict(row_data))
+        # Cria uma lista para armazenar os registros.
+        items = []
 
-        # Retornar os dados ou um erro se nenhum item for encontrado.
-        if list_data:
-            return list_data
+        # Converte cada SQLite.Row em um dicionário e adiciona à lista 'registros'.
+        for item in items_rows:
+            items.append(dict(item))
+
+        # Verifica se há registros antes de retornar.
+        if items:
+
+            # Remove prefixos dos campos.
+            new_items = [prefix_remove('item_', item) for item in items]
+
+            # Se houver registros, retorna tudo.
+            return new_items
         else:
+            # Se não houver registros, retorna erro.
             return {"error": "Nenhum item encontrado"}
 
-    # Tratamento de exceções.
-    except sqlite3.Error as error:
-        return {"error": f"Erro ao acessar o banco de dados: {str(error)}"}
+    except sqlite3.Error as e:  # Erro ao processar banco de dados.
+        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}
+
     except Exception as error:
         return {"error": f"Erro inesperado: {str(error)}"}
 
 
+# Obtém um registro único de 'item', identificado pelo 'id'.
+# Request method → GET
+# Request endpoint → /items/<id>
+# Response → JSON → {}
 @app.route("/items/<int:id>", methods=["GET"])
 def get_one(id):
     try:
-        # Conectar ao banco de dados SQLite.
+        # Conecta ao banco de dados.
         conn = sqlite3.connect(database)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
-        # Consulta SQL para selecionar um item específico por ID.
-        sql = "SELECT * FROM item WHERE item_status != 'off' AND item_id = ?"
-        cursor.execute(sql, (id,))
-        row_data = cursor.fetchone()
+        # Executa o SQL.
+        cursor.execute(
+            "SELECT * FROM item WHERE item_id = ? AND item_status = 'on'", (item_id,))
+
+        # Retorna o resultado da consulta para 'item_row'.
+        item_row = cursor.fetchone()
+
+        # Fecha a conexão com o banco de dados.
         conn.close()
 
-        # Retornar os dados do item ou um erro se não for encontrado.
-        if row_data:
-            return dict(row_data)
-        else:
-            # Retorna um erro HTTP 400 - Bad request.
-            return {"error": "Item não encontrado"}, 400
+        # Se o registro existe...
+        if item_row:
 
-    # Tratamento de exceções.
-    except sqlite3.Error as error:
-        return {"error": f"Erro ao acessar o banco de dados: {str(error)}"}, 500
+            # Converte SQLite.Row para dicionário e armazena em 'item'.
+            item = dict(item_row)
+
+            # Remove prefixos dos campos.
+            new_item = prefix_remove('item_', item)
+
+            # Retorna item.
+            return new_item
+        else:
+            # Se não encontrar o registro, retorna erro.
+            return {"error": "Item não encontrado"}
+
+    except sqlite3.Error as e:  # Erro ao processar banco de dados.
+        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}, 500
+
     except Exception as error:
         return {"error": f"Erro inesperado: {str(error)}"}, 500
 
 
 @app.route('/items', methods=["POST"])
 def create():
-    # Recebe os dados enviados no corpo (body) do POST.
-    post_data = request.get_json()
-    print(post_data)
+    try:
+        # Conecta ao banco de dados.
+        conn = sqlite3.connect(database)
+        cursor = conn.cursor()
 
-    # Conectar ao banco de dados SQLite.
-    conn = sqlite3.connect(database)
-    # conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
+        # Query que insere um novo registro na tabela 'item'.
+        sql = "INSERT INTO item (item_name, item_description, item_location, item_owner) VALUES (?, ?, ?, ?)"
 
-    # Consulta SQL para inserir um item específico por ID.
-    sql = """
-        INSERT INTO item 
-            (item_name, item_description, item_location, item_owner)
-        VALUES
-            (?, ?, ?, ?)
-        """
-    cursor.execute(sql, (
-        post_data['item_name'],
-        post_data['item_description'],
-        post_data['item_location'],
-        post_data['item_owner']
-    ))
-    conn.commit()
-    conn.close()
+        # Executa a query, fazendo as devidas substituições.
+        cursor.execute(
+            sql, (item_json['name'], item_json['description'], item_json['location'], item_json['owner']))
 
-    return {"success": "Item cadastrado com sucesso."}
+        # Salvar as alterações no banco de dados.
+        conn.commit()
+
+        # Fecha a conexão com o banco de dados.
+        conn.close()
+
+        # Retorna com sucesso.
+        return {"success": "Registro criado com sucesso"}
+
+    except json.JSONDecodeError as e:  # Erro ao obter dados do JSON.
+        return {"error": f"Erro ao decodificar JSON: {str(e)}"}, 500
+
+    except sqlite3.Error as e:  # Erro ao processar banco de dados.
+        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}, 500
+
+    except Exception as error:
+        return {"error": f"Erro inesperado: {str(error)}"}, 500
 
 
 # Roda aplicativo Flask.
