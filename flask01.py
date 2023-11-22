@@ -74,16 +74,16 @@ def get_all():
             new_items = [prefix_remove('item_', item) for item in items]
 
             # Se houver registros, retorna tudo.
-            return new_items
+            return new_items, 200
         else:
             # Se não houver registros, retorna erro.
             return {"error": "Nenhum item encontrado"}, 404
 
     except sqlite3.Error as e:  # Erro ao processar banco de dados.
-        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}
+        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}, 500
 
     except Exception as error:  # Outros erros.
-        return {"error": f"Erro inesperado: {str(error)}"}
+        return {"error": f"Erro inesperado: {str(error)}"}, 500
 
 
 @app.route("/items/<int:id>", methods=["GET"])
@@ -92,7 +92,7 @@ def get_one(id):
     # Obtém um registro único de 'item', identificado pelo 'id'.
     # Request method → GET
     # Request endpoint → /items/<id>
-    # Response → JSON → {}
+    # Response → JSON
 
     try:
         # Conecta ao banco de dados.
@@ -120,7 +120,7 @@ def get_one(id):
             new_item = prefix_remove('item_', item)
 
             # Retorna item.
-            return new_item
+            return new_item, 200
         else:
             # Se não encontrar o registro, retorna erro.
             return {"error": "Item não encontrado"}, 404
@@ -165,7 +165,7 @@ def create():
         cursor.execute(sql, sql_data)
 
         # Obter o ID da última inserção
-        inserted_id = cursor.lastrowid
+        inserted_id = int(cursor.lastrowid)
 
         # Salvar as alterações no banco de dados.
         conn.commit()
@@ -174,7 +174,7 @@ def create():
         conn.close()
 
         # Retorna com mensagem de sucesso e status HTTP "201 Created".
-        return {"success": "Registro criado com sucesso", "id": {inserted_id}}, 201
+        return {"success": "Registro criado com sucesso", "id": inserted_id}, 201
 
     except json.JSONDecodeError as e:  # Erro ao obter dados do JSON.
         return {"error": f"Erro ao decodificar JSON: {str(e)}"}, 500
