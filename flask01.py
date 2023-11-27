@@ -32,7 +32,7 @@ def prefix_remove(prefix, data):
 
 
 @app.route("/items", methods=["GET"])
-def get_all():
+def item_get_all():
 
     # Obtém todos os registros válidos de 'item'.
     # Request method → GET
@@ -52,7 +52,7 @@ def get_all():
 
         # Executa o SQL.
         cursor.execute(
-            "SELECT * FROM item WHERE item_status = 'on' ORDER BY item_date DESC")
+            "SELECT * FROM item WHERE item_status != 'off' ORDER BY item_date DESC")
 
         # Retorna todos os resultados da consulta para 'items_rows'.
         items_rows = cursor.fetchall()
@@ -87,7 +87,7 @@ def get_all():
 
 
 @app.route("/items/<int:id>", methods=["GET"])
-def get_one(id):
+def item_get_one(id):
 
     # Obtém um registro único de 'item', identificado pelo 'id'.
     # Request method → GET
@@ -102,7 +102,7 @@ def get_one(id):
 
         # Executa o SQL.
         cursor.execute(
-            "SELECT * FROM item WHERE item_id = ? AND item_status = 'on'", (id,))
+            "SELECT * FROM item WHERE item_id = ? AND item_status != 'off'", (id,))
 
         # Retorna o resultado da consulta para 'item_row'.
         item_row = cursor.fetchone()
@@ -133,7 +133,7 @@ def get_one(id):
 
 
 @app.route('/items', methods=["POST"])
-def create():
+def item_create():
 
     # Cadastra um novo registro em 'item'.
     # Request method → POST
@@ -187,7 +187,7 @@ def create():
 
 
 @app.route("/items/<int:id>", methods=["DELETE"])
-def delete(id):
+def item_delete(id):
 
     # Marca, como apagado, um registro único de 'item', identificado pelo 'id'.
     # Request method → DELETE
@@ -245,7 +245,7 @@ def delete(id):
 
 
 @app.route("/items/<int:id>", methods=["PUT", "PATCH"])
-def edit(id):
+def item_edit(id):
 
     # Edita um registro em 'item', identificado pelo 'id'.
     # Request method → PUT ou PATCH
@@ -269,7 +269,7 @@ def edit(id):
         set_clause = ', '.join([f"item_{key} = ?" for key in item_json.keys()])
 
         # Monta SQL com base nos campos a serem atualizados.
-        sql = f"UPDATE item SET {set_clause} WHERE item_id = ? AND item_status = 'on'"
+        sql = f"UPDATE item SET {set_clause} WHERE item_id = ? AND item_status != 'off'"
         cursor.execute(sql, (*item_json.values(), id))
 
         # Commit para salvar as alterações.
@@ -288,6 +288,216 @@ def edit(id):
         return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}, 500
 
     except Exception as e:  # Outros erros.
+        return {"error": f"Erro inesperado: {str(e)}"}, 500
+
+
+@app.route("/items/search/<string:query>")
+def item_search(query):
+
+    # Pesquisa todos os registros válidos de 'item' que conténha 'query' nos campos
+    # 'item_name', 'item_description' ou 'item_location'.
+    # Request method → GET
+    # Request endpoint → /items/search/<string:query>
+    # Response → JSON
+
+    try:
+        conn = sqlite3.connect(database)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        sql = """
+            SELECT * FROM item
+            WHERE item_status != 'off' AND (
+                item_name LIKE '%' || ? || '%' OR
+                item_description LIKE '%' || ? || '%' OR
+                item_location LIKE '%' || ? || '%'
+            );        
+        """
+        cursor.execute(sql, (query, query, query))
+        items_rows = cursor.fetchall()
+        conn.close()
+
+        items = []
+        for item in items_rows:
+            items.append(dict(item))
+
+        if items:
+            new_items = [prefix_remove('item_', item) for item in items]
+            return new_items, 200
+        else:
+            return {"error": "Nenhum item encontrado"}, 404
+
+    except sqlite3.Error as e:
+        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}, 500
+
+    except Exception as e:
+        return {"error": f"Erro inesperado: {str(e)}"}, 500
+
+
+@app.route("/owners", methods=["GET"])
+def owner_get_all():
+
+    # Obtém todos os registros válidos de 'owner'.
+    # Request method → GET
+    # Request endpoint → /owners
+    # Response → JSON
+
+    try:
+        conn = sqlite3.connect(database)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        sql = "SELECT * FROM owner WHERE owner_status != 'off' ORDER BY owner_name"
+        cursor.execute(sql)
+        items_rows = cursor.fetchall()
+        conn.close()
+
+        items = []
+        for item in items_rows:
+            items.append(dict(item))
+
+        if items:
+            new_items = [prefix_remove('item_', item) for item in items]
+            return new_items, 200
+        else:
+            return {"error": "Nenhum item encontrado"}, 404
+
+    except sqlite3.Error as e:
+        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}, 500
+    except Exception as e:
+        return {"error": f"Erro inesperado: {str(e)}"}, 500
+
+
+@app.route("/owners/<int:id>", methods=["GET"])
+def owner_get_one(id):
+
+    # Obtém um registro único de 'owner', identificado pelo 'id'.
+    # Request method → GET
+    # Request endpoint → /owners/<id>
+    # Response → JSON
+
+    try:
+        conn = sqlite3.connect(database)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        sql = "SELECT * FROM owner WHERE owner_id = ? AND owner_status != 'off'"
+        cursor.execute(sql, (id,))
+        item_row = cursor.fetchone()
+        conn.close()
+
+        if item_row:
+            item = dict(item_row)
+            new_item = prefix_remove('item_', item)
+            return new_item, 200
+        else:
+            return {"error": "Item não encontrado"}, 404
+
+    except sqlite3.Error as e:
+        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}, 500
+    except Exception as e:
+        return {"error": f"Erro inesperado: {str(e)}"}, 500
+
+
+@app.route('/owners', methods=["POST"])
+def owner_create():
+
+    # Cadastra um novo registro em 'owner'.
+    # Request method → POST
+    # Request endpoint → /owners
+    # Request body → JSON (raw) → { String: name, String:email, string:password, string:birth }
+    # Response → JSON → { "success": "Registro criado com sucesso", "id": id do novo registro }}
+
+    try:
+        new_item = request.get_json()
+        conn = sqlite3.connect(database)
+        cursor = conn.cursor()
+        sql = "INSERT INTO owner (owner_name, owner_email, owner_password, owner_birth) VALUES (?, ?, ?, ?)"
+        sql_data = (
+            new_item['name'],
+            new_item['email'],
+            new_item['password'],
+            new_item['birth']
+        )
+        cursor.execute(sql, sql_data)
+        inserted_id = int(cursor.lastrowid)
+        conn.commit()
+        conn.close()
+
+        if inserted_id > 0:
+            return {"success": "Registro criado com sucesso", "id": inserted_id}, 201
+
+    except json.JSONDecodeError as e:
+        return {"error": f"Erro ao decodificar JSON: {str(e)}"}, 500
+    except sqlite3.Error as e:
+        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}, 500
+    except Exception as e:
+        return {"error": f"Erro inesperado: {str(e)}"}, 500
+
+
+@app.route("/owners/<int:id>", methods=["PATCH"])
+def owner_edit(id):
+
+    # Edita um registro em 'owner', identificado pelo 'id'.
+    # Request method → PATCH
+    # Request endpoint → /owners/<id>
+    # Request body → JSON (raw) → { String: name, String:email, string:password, string:birth }
+    #       OBS: usando "PATCH", não é necessário enviar todos os campos, apenas os que serão alterados.
+    # Response → JSON → { "success": "Registro atualizado com sucesso", "id": id do registro }
+
+    try:
+        item_json = request.get_json()
+        conn = sqlite3.connect(database)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        # Loop para atualizar os campos específicos do registro na tabela 'item'.
+        # Observe que o prefixo 'item_' é adicionado ao(s) nome(s) do(s) campo(s).
+        set_clause = ', '.join(
+            [f"owner_{key} = ?" for key in item_json.keys()])
+
+        # Monta SQL com base nos campos a serem atualizados.
+        sql = f"UPDATE owner SET {set_clause} WHERE owner_id = ? AND owner_status != 'off'"
+        cursor.execute(sql, (*item_json.values(), id))
+
+        # Envia dados e fecha a conexão com o banco de dados.
+        conn.commit()
+        conn.close()
+
+        return {"success": "Registro atualizado com sucesso", "id": id}, 201
+
+    except sqlite3.Error as e:
+        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}, 500
+    except Exception as e:
+        return {"error": f"Erro inesperado: {str(e)}"}, 500
+
+
+@app.route("/owners/<int:id>", methods=["DELETE"])
+def owner_delete(id):
+
+    # Marca, como apagado, um registro único de 'owner', identificado pelo 'id'.
+    # Request method → DELETE
+    # Request endpoint → /owners/<id>
+    # Response → JSON → { "success": "Registro apagado com sucesso", "id": id do registro }
+
+    try:
+        conn = sqlite3.connect(database)
+        cursor = conn.cursor()
+
+        sql = "SELECT owner_id FROM owner WHERE owner_id = ? AND owner_status != 'off'"
+        cursor.execute(sql, (id,))
+        item_row = cursor.fetchone()
+
+        if item_row:
+            sql = "UPDATE owner SET owner_status = 'off' WHERE owner_id = ?"
+            cursor.execute(sql, (id,))
+            conn.commit()
+            conn.close()
+            return {"success": "Registro apagado com sucesso", "id": id}, 200
+        else:
+            conn.close()
+            return {"error": "Item não existe"}, 404
+
+    except sqlite3.Error as e:
+        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}, 500
+    except Exception as e:
         return {"error": f"Erro inesperado: {str(e)}"}, 500
 
 
