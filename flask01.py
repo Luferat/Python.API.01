@@ -31,8 +31,6 @@ def prefix_remove(prefix, data):
     return new_data
 
 
-
-
 @app.route("/items", methods=["GET"])
 def item_get_all():
 
