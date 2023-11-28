@@ -279,8 +279,7 @@ def item_edit(id):
         set_clause = ', '.join([f"item_{key} = ?" for key in item_json.keys()])
 
         # Monta SQL com base nos campos a serem atualizados.
-        sql = f"UPDATE item SET {
-            set_clause} WHERE item_id = ? AND item_status != 'off'"
+        sql = f"UPDATE item SET {set_clause} WHERE item_id = ? AND item_status != 'off'"
         cursor.execute(sql, (*item_json.values(), id))
 
         # Commit para salvar as alterações.
@@ -470,8 +469,7 @@ def owner_edit(id):
             [f"owner_{key} = ?" for key in item_json.keys()])
 
         # Monta SQL com base nos campos a serem atualizados.
-        sql = f"UPDATE owner SET {
-            set_clause} WHERE owner_id = ? AND owner_status != 'off'"
+        sql = f"UPDATE owner SET {set_clause} WHERE owner_id = ? AND owner_status != 'off'"
         cursor.execute(sql, (*item_json.values(), id))
 
         # Envia dados e fecha a conexão com o banco de dados.
