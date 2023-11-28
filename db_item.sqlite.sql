@@ -2,6 +2,7 @@
 -- CUIDADO! Isso destroi todos os dados do banco.
 DROP TABLE IF EXISTS item;
 DROP TABLE IF EXISTS owner;
+DROP TABLE IF EXISTS contact;
 
 -- Cria a tabela 'owner'.
 CREATE TABLE owner (
@@ -16,7 +17,7 @@ CREATE TABLE owner (
 	owner_field2 TEXT
 );
 
--- Popula 'owner' com dados 'fake' aleatórios.
+-- Popula 'owner' com dados 'fake' aleatórios para testes.
 INSERT INTO owner (owner_name, owner_email, owner_password, owner_birth, owner_date)
 VALUES 
 	('João Silva', 'joao@example.com', 'senha321', '1987-08-15', '2023-01-15 10:30:00'),
@@ -40,11 +41,22 @@ CREATE TABLE item (
 	FOREIGN KEY (item_owner) REFERENCES owner (owner_id)
 );
 
--- Popula 'item' com dados 'fake' ' aleatórios.
+-- Popula 'item' com dados 'fake' aleatórios para testes.
 INSERT INTO item (item_date, item_name, item_description, item_location, item_owner)
 VALUES
 	('2023-05-12 14:15:00', 'Produto1', 'Descrição do Produto 1', 'Localização 1', 1),
 	('2023-06-21 23:24:25', 'Produto2', 'Descrição do Produto 2', 'Localização 2', 2),
 	('2023-10-01 08:09:00', 'Produto3', 'Descrição do Produto 3', 'Localização 3', 3),
 	('2023-11-11 11:11:00', 'Produto4', 'Descrição do Produto 4', 'Localização 4', 6);
-  
+
+
+-- Cria a tabela 'contacts'.
+CREATE TABLE contact (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	date DATETIME DEFAULT CURRENT_TIMESTAMP,
+	name TEXT,
+	email TEXT,
+	subject TEXT,
+	message TEXT,
+	status TEXT DEFAULT 'received'
+);

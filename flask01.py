@@ -30,6 +30,10 @@ def prefix_remove(prefix, data):
             new_data[key] = value
     return new_data
 
+# ########################### #
+# Rotas para consumir 'item'. #
+# ########################### #
+
 
 @app.route("/items", methods=["GET"])
 def item_get_all():
@@ -269,7 +273,8 @@ def item_edit(id):
         set_clause = ', '.join([f"item_{key} = ?" for key in item_json.keys()])
 
         # Monta SQL com base nos campos a serem atualizados.
-        sql = f"UPDATE item SET {set_clause} WHERE item_id = ? AND item_status != 'off'"
+        sql = f"UPDATE item SET {
+            set_clause} WHERE item_id = ? AND item_status != 'off'"
         cursor.execute(sql, (*item_json.values(), id))
 
         # Commit para salvar as alterações.
@@ -331,6 +336,10 @@ def item_search(query):
 
     except Exception as e:
         return {"error": f"Erro inesperado: {str(e)}"}, 500
+
+# ############################ #
+# Rotas para consumir 'owner'. #
+# ############################ #
 
 
 @app.route("/owners", methods=["GET"])
@@ -454,7 +463,8 @@ def owner_edit(id):
             [f"owner_{key} = ?" for key in item_json.keys()])
 
         # Monta SQL com base nos campos a serem atualizados.
-        sql = f"UPDATE owner SET {set_clause} WHERE owner_id = ? AND owner_status != 'off'"
+        sql = f"UPDATE owner SET {
+            set_clause} WHERE owner_id = ? AND owner_status != 'off'"
         cursor.execute(sql, (*item_json.values(), id))
 
         # Envia dados e fecha a conexão com o banco de dados.
@@ -520,7 +530,7 @@ def owner_item_get_all(id):
             WHERE item_status != 'off'
                 AND item_owner = ? 
             ORDER BY item_date DESC
-            """            
+            """
         cursor.execute(sql, (id,))
         items_rows = cursor.fetchall()
         conn.close()
@@ -581,6 +591,46 @@ def item_all_get_all(id):
     except sqlite3.Error as e:
         return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}, 500
 
+    except Exception as e:
+        return {"error": f"Erro inesperado: {str(e)}"}, 500
+
+
+# ############################## #
+# Rotas para consumir 'contact'. #
+# ############################## #
+
+@app.route("/contacts", methods=["POST"])
+def contacts():
+
+    # Cadastra um novo contato em 'contact'.
+    # Request method → POST
+    # Request endpoint → /contacts
+    # Request body → JSON (raw) → { string:name, string:email, string:subject, string:message }
+    # Response → JSON → { "success": "Registro criado com sucesso", "id": id do novo registro }
+
+    try:
+        new_item = request.get_json()
+        conn = sqlite3.connect(database)
+        cursor = conn.cursor()
+        sql = "INSERT INTO contact (name, email, subject, message) VALUES (?, ?, ?, ?)"
+        sql_data = (
+            new_item['name'],
+            new_item['email'],
+            new_item['subject'],
+            new_item['message']
+        )
+        cursor.execute(sql, sql_data)
+        inserted_id = int(cursor.lastrowid)
+        conn.commit()
+        conn.close()
+
+        if inserted_id > 0:
+            return {"success": "Contato enviado com sucesso", "id": inserted_id, "name": new_item['name']}, 201
+
+    except json.JSONDecodeError as e:
+        return {"error": f"Erro ao decodificar JSON: {str(e)}"}, 500
+    except sqlite3.Error as e:
+        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}, 500
     except Exception as e:
         return {"error": f"Erro inesperado: {str(e)}"}, 500
 
