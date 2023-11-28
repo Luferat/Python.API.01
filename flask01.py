@@ -557,7 +557,7 @@ def owner_item_get_all(id):
 @app.route("/items/all/<int:id>", methods=["GET"])
 def item_all_get_all(id):
 
-    # Obtém todos os registros válidos de 'item' identificado pelo 'id',
+    # Obtém todos os campos válidos de 'item' identificado pelo 'id',
     # juntamente com os dados de 'owner' correspondente.
     # Request method → GET
     # Request endpoint → /items/all/<id>
