@@ -30,6 +30,7 @@ def prefix_remove(prefix, data):
             new_data[key] = value
     return new_data
 
+
 # ########################### #
 # Rotas para consumir 'item'. #
 # ########################### #
@@ -337,6 +338,7 @@ def item_search(query):
     except Exception as e:
         return {"error": f"Erro inesperado: {str(e)}"}, 500
 
+
 # ############################ #
 # Rotas para consumir 'owner'. #
 # ############################ #
@@ -598,6 +600,7 @@ def item_all_get_all(id):
 # ############################## #
 # Rotas para consumir 'contact'. #
 # ############################## #
+
 
 @app.route("/contacts", methods=["POST"])
 def contacts():
