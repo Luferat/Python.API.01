@@ -50,7 +50,7 @@ VALUES
 	('2023-11-11 11:11:00', 'Produto4', 'Descrição do Produto 4', 'Localização 4', 6);
 
 
--- Cria a tabela 'contacts'.
+-- Cria a tabela 'contact'.
 CREATE TABLE contact (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	date DATETIME DEFAULT CURRENT_TIMESTAMP,
