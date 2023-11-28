@@ -355,7 +355,7 @@ def owner_get_all():
             items.append(dict(item))
 
         if items:
-            new_items = [prefix_remove('item_', item) for item in items]
+            new_items = [prefix_remove('owner_', item) for item in items]
             return new_items, 200
         else:
             return {"error": "Nenhum item encontrado"}, 404
@@ -385,7 +385,7 @@ def owner_get_one(id):
 
         if item_row:
             item = dict(item_row)
-            new_item = prefix_remove('item_', item)
+            new_item = prefix_remove('owner_', item)
             return new_item, 200
         else:
             return {"error": "Item não encontrado"}, 404
@@ -497,6 +497,90 @@ def owner_delete(id):
 
     except sqlite3.Error as e:
         return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}, 500
+    except Exception as e:
+        return {"error": f"Erro inesperado: {str(e)}"}, 500
+
+
+@app.route("/owners/items/<int:id>", methods=["GET"])
+def owner_item_get_all(id):
+
+    # Obtém todos os registros válidos de 'item' para um 'owner' específico,
+    # identificado pelo 'id'.
+    # Request method → GET
+    # Request endpoint → /owners/items/<id>
+    # Response → JSON
+
+    try:
+        conn = sqlite3.connect(database)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        sql = """
+            SELECT * FROM item
+            WHERE item_status != 'off'
+                AND item_owner = ? 
+            ORDER BY item_date DESC
+            """            
+        cursor.execute(sql, (id,))
+        items_rows = cursor.fetchall()
+        conn.close()
+
+        items = []
+        for item in items_rows:
+            items.append(dict(item))
+
+        if items:
+            new_items = [prefix_remove('item_', item) for item in items]
+            return new_items, 200
+        else:
+            return {"error": "Nenhum item encontrado"}, 404
+
+    except sqlite3.Error as e:
+        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}, 500
+
+    except Exception as e:
+        return {"error": f"Erro inesperado: {str(e)}"}, 500
+
+
+@app.route("/items/all/<int:id>", methods=["GET"])
+def item_all_get_all(id):
+
+    # Obtém todos os registros válidos de 'item' identificado pelo 'id',
+    # juntamente com os dados de 'owner' correspondente.
+    # Request method → GET
+    # Request endpoint → /items/all/<id>
+    # Response → JSON
+
+    try:
+        conn = sqlite3.connect(database)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        sql = """
+            SELECT * FROM item 
+                INNER JOIN owner ON item_owner = owner_id
+            WHERE item_status != 'off'
+                AND item_id = ?
+            ORDER BY item_date DESC
+        """
+        cursor.execute(sql, (id,))
+        items_rows = cursor.fetchall()
+        conn.close()
+
+        items = []
+        for item in items_rows:
+            items.append(dict(item))
+
+        if items:
+            # Só removemos o prefixo de 'item' para não gerar dados homônimos.
+            new_items = [prefix_remove('item_', item) for item in items]
+            return new_items, 200
+        else:
+            return {"error": "Nenhum item encontrado"}, 404
+
+    except sqlite3.Error as e:
+        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}, 500
+
     except Exception as e:
         return {"error": f"Erro inesperado: {str(e)}"}, 500
 
