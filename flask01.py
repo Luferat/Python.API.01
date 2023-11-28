@@ -414,7 +414,7 @@ def owner_create():
     # Request method → POST
     # Request endpoint → /owners
     # Request body → JSON (raw) → { String: name, String:email, string:password, string:birth }
-    # Response → JSON → { "success": "Registro criado com sucesso", "id": id do novo registro }}
+    # Response → JSON → { "success": "Registro criado com sucesso", "id": id do novo registro }
 
     try:
         new_item = request.get_json()
