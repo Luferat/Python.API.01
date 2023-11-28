@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python.API.01</title>
+    <style>
+        html,
+        body {
+            font-family: sans-serif;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Python.API.01</h1>
+
+    <p>Minha primeira API REST em Python.</p>
+    <h2>Requisitos</h2>
+    <ul>
+        <li>Python 3.10^</li>
+        <li>Flask</li>
+    </ul>
+    <h2>Opcionais</h2>
+    <ul>
+        <li><a href="https://sqlitebrowser.org/" rel="nofollow">DB Browser (SQLite)</a> para gerenciar o banco de dados
+            local.</li>
+    </ul>
+    <h2>Rotas e Endpoints</h2>
+    <p>Obtém todos os registros válidos de 'item'.</p>
+    <ul>
+        <li>Request method → <code>GET</code></li>
+        <li>Request endpoint → <code>/items</code></li>
+        <li>Response → JSON[]</li>
+    </ul>
+    <p>Obtém um registro único de 'item', identificado pelo 'id'.</p>
+    <ul>
+        <li>Request method → <code>GET</code></li>
+        <li>Request endpoint → <code>/items/&lt;id&gt;</code></li>
+        <li>Response → JSON{}</li>
+    </ul>
+    <p>Cadastra um novo registro em 'item'.</p>
+    <ul>
+        <li>Request method → <code>POST</code></li>
+        <li>Request endpoint → <code>/items</code></li>
+        <li>Request body → JSON (raw) → <code>{ string:name, string:description, string:location, int:owner }</code>
+        </li>
+        <li>Response → JSON → <code>{ "success": "Registro criado com sucesso", "id": id do novo registro }</code></li>
+    </ul>
+    <p>Marca, como apagado, um registro único de 'item', identificado pelo 'id'.</p>
+    <ul>
+        <li>Request method → <code>DELETE</code></li>
+        <li>Request endpoint → <code>/items/&lt;id&gt;</code></li>
+        <li>Response → JSON → <code>{ "success": "Registro apagado com sucesso", "id": id do registro }</code></li>
+    </ul>
+    <p>Edita um registro em 'item', identificado pelo 'id'.</p>
+    <ul>
+        <li>Request method → <code>PUT</code> ou <code>PATCH</code></li>
+        <li>Request endpoint → <code>/items/&lt;id&gt;</code></li>
+        <li>Request body → JSON (raw) → <code>{ string:name, string:description, string:location, int:owner }</code>
+            <ul>
+                <li><em>OBS: usando <code>PATCH</code>, não é necessário enviar todos os campos, apenas os que serão
+                        alterados.</em></li>
+            </ul>
+        </li>
+        <li>Response → JSON → <code>{ "success": "Registro atualizado com sucesso", "id": id do registro }</code></li>
+    </ul>
+    <p>Pesquisa todos os registros válidos de 'item' que contenha 'query' nos campos <code>item_name</code>,
+        <code>item_description</code> ou <code>item_location</code>.
+    </p>
+    <ul>
+        <li>Request method → <code>GET</code></li>
+        <li>Request endpoint → <code>/items/search/&lt;string:query&gt;</code></li>
+        <li>Response → JSON[]</li>
+    </ul>
+    <p>Obtém todos os registros válidos de 'owner'.</p>
+    <ul>
+        <li>Request method → <code>GET</code></li>
+        <li>Request endpoint → <code>/owners</code></li>
+        <li>Response → JSON[]</li>
+    </ul>
+    <p>Obtém um registro único de 'owner', identificado pelo 'id'.</p>
+    <ul>
+        <li>Request method → <code>GET</code></li>
+        <li>Request endpoint → <code>/owners/&lt;id&gt;</code></li>
+        <li>Response → JSON{}</li>
+    </ul>
+    <p>Cadastra um novo registro em 'owner'.</p>
+    <ul>
+        <li>Request method → <code>POST</code></li>
+        <li>Request endpoint → <code>/owners</code></li>
+        <li>Request body → JSON (raw) → <code>{ string: name, string:email, string:password, string:birth }</code></li>
+        <li>Response → JSON → <code>{ "success": "Registro criado com sucesso", "id": id do novo registro }</code></li>
+    </ul>
+    <p>Edita um registro em 'owner', identificado pelo 'id'.</p>
+    <ul>
+        <li>Request method → <code>PATCH</code></li>
+        <li>Request endpoint → <code>/owners/&lt;id&gt;</code></li>
+        <li>Request body → JSON (raw) → <code>{ string: name, string:email, string:password, string:birth }</code>
+            <ul>
+                <li><em>OBS: usando "PATCH", não é necessário enviar todos os campos, apenas os que serão
+                        alterados.</em></li>
+            </ul>
+        </li>
+        <li>Response → JSON → <code>{ "success": "Registro atualizado com sucesso", "id": id do registro }</code></li>
+    </ul>
+    <p>Marca, como apagado, um registro único de 'owner', identificado pelo 'id'.</p>
+    <ul>
+        <li>Request method → <code>DELETE</code></li>
+        <li>Request endpoint → <code>/owners/&lt;id&gt;</code></li>
+        <li>Response → JSON → <code>{ "success": "Registro apagado com sucesso", "id": id do registro }</code></li>
+    </ul>
+    <p>Obtém todos os registros válidos de 'item' para um 'owner' específico, identificado pelo 'id'.</p>
+    <ul>
+        <li>Request method → <code>GET</code></li>
+        <li>Request endpoint → <code>/owners/items/&lt;id&gt;</code></li>
+        <li>Response → JSON[]</li>
+    </ul>
+    <p>Obtém todos os campos válidos de 'item' identificado pelo 'id', juntamente com os dados de 'owner'
+        correspondente.</p>
+    <ul>
+        <li>Request method → <code>GET</code></li>
+        <li>Request endpoint → <code>/items/all/&lt;id&gt;</code></li>
+        <li>Response → JSON{}</li>
+    </ul>
+    <p>Cadastra um novo contato em 'contact'.</p>
+    <ul>
+        <li>Request method → <code>POST</code></li>
+        <li>Request endpoint → <code>/contacts</code></li>
+        <li>Request body → JSON (raw) → <code>{ string:name, string:email, string:subject, string:message }</code></li>
+        <li>Response → JSON → <code>{ "success": "Registro criado com sucesso", "id": id do novo registro }</code></li>
+    </ul>
+    <hr>
+
+
+</body>
+
+</html>
