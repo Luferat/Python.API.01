@@ -600,9 +600,9 @@ def item_all_get_all(id):
         return {"error": f"Erro inesperado: {str(e)}"}, 500
 
 
-# ############################## #
-# Rotas para consumir 'contact'. #
-# ############################## #
+# ############################# #
+# Rota para consumir 'contact'. #
+# ############################# #
 
 
 @app.route("/contacts", methods=["POST"])
