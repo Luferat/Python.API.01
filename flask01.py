@@ -144,7 +144,7 @@ def item_create():
     # Request method → POST
     # Request endpoint → /items
     # Request body → JSON (raw) → { String:name, String:description, String:location, int:owner }
-    # Response → JSON → { "success": "Registro criado com sucesso", "id": id do novo registro }}
+    # Response → JSON → { "success": "Registro criado com sucesso", "id": id do novo registro }
 
     try:
         # Recebe dados do body da requisição na forma de 'dict'.
