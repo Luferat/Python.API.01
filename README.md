@@ -4,8 +4,9 @@ Minha primeira API REST em Python.
 
 ## Requisitos
 
-- Python 3.10^
-- Flask
+- Python 3.12.0^
+- Flask 3.0.0^
+- Flask-Cors 4.0.0^
 
 ## Opcionais
 
