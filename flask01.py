@@ -8,6 +8,9 @@ import sqlite3
 
 # Cria aplicativo Flask.
 app = Flask(__name__)
+
+# O CORS permite requisições de domínios diferentes.
+# Exemplo: CORS(app, origins=["http://localhost:8080", "https://seusite.com"])
 CORS(app)
 
 # Configura o character set das transações HTTP para UTF-8.
